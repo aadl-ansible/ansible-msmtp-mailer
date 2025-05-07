@@ -1,0 +1,4 @@
+---
+__msmtp_packages:
+  - msmtp
+  - s-nail

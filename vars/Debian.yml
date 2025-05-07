@@ -1,0 +1,4 @@
+---
+__msmtp_packages:
+  - msmtp-mta
+  - bsd-mailx

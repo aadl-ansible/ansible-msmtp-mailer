@@ -1,9 +1,20 @@
 ---
-# Deploy msmtp
+- name: Include OS-specific variables.
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_facts['distribution'] + '-' + ansible_facts['distribution_version'] }}.yml"
+    - "{{ ansible_facts['os_family'] + '-' + ansible_facts['distribution_major_version'] }}.yml"
+    - "{{ ansible_facts['os_family'] }}.yml"
 
-# TODO:
-# Fix: Check if mailserver is ready, as Test mail will only work,
-# if msmtp is setup after the mailserver is already configured
+- name: Set the msmtp_packages variable.
+  set_fact:
+    msmtp_packages: "{{ __msmtp_packages }}"
+  when: msmtp_packages is not defined
+
+- name: Install EPEL when RedHat family
+  ansible.builtin.include_role:
+    name: geerlingguy.repo-epel
+  when: ansible_os_family == "RedHat"
 
 - name: Update apt cache.
   apt:
@@ -14,11 +25,9 @@
   when: ansible_os_family == "Debian"
 
 - name: Remove other MTAs.
-  apt:
+  ansible.builtin.package:
     name: "{{ packages }}"
     state: absent
-    autoremove: yes
-    purge: yes
   vars:
     packages:
     - exim4*
@@ -28,41 +37,13 @@
     - mail
   when:
     - msmtp_remove_mtas
-    - ansible_os_family == "Debian"
 
-- name: Install msmtp and mailx on Debian.
-  apt:
-    name: "{{ packages }}"
+- name: Install msmtp packages
+  ansible.builtin.package:
+    name: "{{ msmtp_packages }}"
     state: present
-  vars:
-    packages:
-    - msmtp-mta
-    - bsd-mailx
   tags: mail
   notify: test mail
-  when: ansible_os_family == "Debian"
-
-- name: Install msmtp and s-nail on Archlinux.
-  pacman:
-    name: "{{ packages }}"
-    state: present
-  vars:
-    packages:
-    - msmtp
-    - msmtp-mta
-    - s-nail
-  when: ansible_os_family == "Archlinux"
-
-- name: Install msmtp and mailx on Alpine.
-  apk:
-    name: "{{ packages }}"
-    state: present
-    update_cache: no
-  vars:
-    packages:
-    - msmtp
-    - mailx
-  when: ansible_os_family == "Alpine"
 
 - name: Overwrite busybox sendmail link to point to mSMTP.
   file:
