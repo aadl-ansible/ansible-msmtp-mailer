@@ -1,24 +1,19 @@
 ---
 - name: Include OS-specific variables.
-  include_vars: "{{ item }}"
+  ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
     - "{{ ansible_facts['distribution'] + '-' + ansible_facts['distribution_version'] }}.yml"
     - "{{ ansible_facts['os_family'] + '-' + ansible_facts['distribution_major_version'] }}.yml"
     - "{{ ansible_facts['os_family'] }}.yml"
 
 - name: Set the msmtp_packages variable.
-  set_fact:
+  ansible.builtin.set_fact:
     msmtp_packages: "{{ __msmtp_packages }}"
   when: msmtp_packages is not defined
 
-- name: Install EPEL when RedHat family
-  ansible.builtin.include_role:
-    name: geerlingguy.repo-epel
-  when: ansible_os_family == "RedHat"
-
 - name: Update apt cache.
-  apt:
-    update_cache: yes
+  ansible.builtin.apt:
+    update_cache: true
     upgrade: "no"
     cache_valid_time: 14400 # 4 hours
   tags: mail
@@ -30,9 +25,9 @@
     state: absent
   vars:
     packages:
-    - exim4*
-    - postfix*
-    - sendmail*
+      - exim4*
+      - postfix*
+      - sendmail*
   tags:
     - mail
   when:
@@ -43,31 +38,28 @@
     name: "{{ msmtp_packages }}"
     state: present
   tags: mail
-  notify: test mail
 
 - name: Overwrite busybox sendmail link to point to mSMTP.
-  file:
+  ansible.builtin.file:
     src: /usr/bin/msmtp
     dest: /usr/sbin/sendmail
     state: link
   when: ansible_os_family == "Alpine"
 
 - name: Copy mstprc conf file.
-  template:
-     src: msmtprc.j2
-     dest: /etc/msmtprc
-     owner: "{{ msmtprc_owner }}"
-     group: "{{ msmtprc_group }}"
-     mode: "{{ msmtprc_mode }}"
+  ansible.builtin.template:
+    src: msmtprc.j2
+    dest: /etc/msmtprc
+    owner: "{{ msmtprc_owner }}"
+    group: "{{ msmtprc_group }}"
+    mode: "{{ msmtprc_mode }}"
   tags: mail
-  notify: test mail
 
 - name: Copy aliases conf file.
-  template:
+  ansible.builtin.template:
     src: aliases.j2
     dest: /etc/aliases
-    owner: root
-    group: root
-    mode: 0644
+    owner: "{{ msmtprc_owner }}"
+    group: "{{ msmtprc_group }}"
+    mode: "{{ msmtprc_mode }}"
   tags: mail
-  notify: test mail

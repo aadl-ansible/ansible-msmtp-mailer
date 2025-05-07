@@ -2,11 +2,9 @@ galaxy_info:
   author: Adham Helal, Christian Wagner
   role_name: msmtp_mailer
   namespace: aadl
-  description: "Deploy msmtp mailer on Debian and Ubuntu"
-  min_ansible_version: 2.4
+  description: "Deploy msmtp mailer"
+  min_ansible_version: '2.4'
   license: Apache
-  dependencies:
-    - { role: geerlingguy.repo-epel, version: 3.1.1}
   platforms:
     - name: Debian
       versions:
@@ -20,11 +18,9 @@ galaxy_info:
         - bionic
     - name: ArchLinux
       versions:
-        - any
+        - all
     - name: Alpine
       versions:
-        - any
-  tags:
-    - mail
-    - system
-    - networking
+        - all
+dependencies:
+  - { role: geerlingguy.repo-epel, version: 3.1.1, when: ansible_os_family == "RedHat"}
