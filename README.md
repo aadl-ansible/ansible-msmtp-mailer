@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.com/chriswayg/ansible-msmtp-mailer.svg?branch=master)](https://travis-ci.com/chriswayg/ansible-msmtp-mailer)
-
 # ansible-msmtp-mailer
 
 This ansible role deploys msmtp as a mailer for Debian, Ubuntu, Arch & Alpine Linux
